@@ -1,0 +1,108 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ATLAS</AssemblyName>
+    <RootNamespace>ATLAS</RootNamespace>
+    <Version>0.15.0</Version>
+    <Product>ATLAS</Product>
+    <Description>Archives error logs named after their cause, and scans for mod conflicts and missing dependencies.</Description>
+    <Authors>davemuziek</Authors>
+
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <DebugType>portable</DebugType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <!-- ===== Paths. Edit these two if your install lives elsewhere. ===== -->
+  <PropertyGroup>
+    <GameDir>C:\Steam\steamapps\common\The Planet Crafter</GameDir>
+    <PluginDir>$(GameDir)\BepInEx\plugins\Davemuziek - ATLAS</PluginDir>
+
+    <ManagedDir>$(GameDir)\Planet Crafter_Data\Managed</ManagedDir>
+    <BepInExCoreDir>$(GameDir)\BepInEx\core</BepInExCoreDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- Drift (0.7.0) reads Assembly-CSharp.dll and the plugin DLLs with Mono.Cecil. It ships
+         in BepInEx/core and is already loaded by the preloader, so reference it there and do NOT
+         copy it to the plugins folder (Private=false). -->
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(BepInExCoreDir)\Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- IMGUI (GUI / GUILayout / GUIStyle) for the in-game overlay panel, plus the text-rendering
+         module that carries FontStyle / TextAnchor used by GUIStyle. -->
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- Required by the keybind scanner (and, for now, by src/TestHarness.cs).
+         Note the assembly is Unity.InputSystem.dll, not UnityEngine.InputSystem.dll. -->
+    <Reference Include="Unity.InputSystem">
+      <HintPath>$(ManagedDir)\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Fails loudly at build time rather than producing a mystery "type not found" wall
+    if GameDir is wrong.
+  -->
+  <Target Name="VerifyGamePaths" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ManagedDir)\Assembly-CSharp.dll')"
+           Text="Assembly-CSharp.dll not found at '$(ManagedDir)'. Fix &lt;GameDir&gt; in ATLAS.csproj." />
+    <Error Condition="!Exists('$(BepInExCoreDir)\BepInEx.dll')"
+           Text="BepInEx.dll not found at '$(BepInExCoreDir)'. Is BepInEx installed?" />
+  </Target>
+
+  <!--
+    Drops the built DLL straight into the plugins folder.
+    ContinueOnError so that having the game open does not fail the whole build -
+    you just get a warning and a stale DLL, which the version-stamped startup line
+    in Plugin.cs will catch.
+  -->
+  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="xcopy /Y /I /Q &quot;$(TargetPath)&quot; &quot;$(PluginDir)&quot;"
+          ContinueOnError="true" />
+    <Exec Command="xcopy /Y /I /Q &quot;$(TargetDir)$(AssemblyName).pdb&quot; &quot;$(PluginDir)&quot;"
+          Condition="'$(Configuration)' == 'Debug' And Exists('$(TargetDir)$(AssemblyName).pdb')"
+          ContinueOnError="true" />
+    <Message Importance="high" Text="ATLAS -> $(PluginDir)" />
+  </Target>
+
+</Project>
