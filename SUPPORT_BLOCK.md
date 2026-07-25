@@ -12,18 +12,18 @@ scan history — so it needs somewhere that accepts a file. A GitHub issue does;
 ## Block A — for David's own mod pages
 
 For the bug-report section of ARCHITECT, NAVIGATOR, Field Terminal, Save Keeper, etc.
-Replace `MODID` with the ATLAS Nexus id and `YOURREPO` with the issue-tracker URL.
+Links are already filled in for ATLAS (Nexus mod 233) and the PlanetCrafterATLAS tracker.
 
 ```bbcode
 [size=4][b]━━ REPORTING A BUG ━━[/b][/size]
 
-Please attach an ATLAS support bundle. [url=https://www.nexusmods.com/theplanetcrafter/mods/MODID]ATLAS[/url] is a free diagnostic mod of mine that records what is actually loaded on your machine — mod versions, patch conflicts, keybind clashes, and the errors your logs have been repeating. It turns "it broke" into something I can act on in one pass instead of five.
+Please attach an ATLAS support bundle. [url=https://www.nexusmods.com/planetcrafter/mods/233]ATLAS[/url] is a free diagnostic mod of mine that records what is actually loaded on your machine — mod versions, patch conflicts, keybind clashes, and the errors your logs have been repeating. It turns "it broke" into something I can act on in one pass instead of five.
 
 [b]How:[/b]
 • Install ATLAS, then play until you hit the problem
 • Return to the main menu, or quit the game normally
 • Open [b]BepInEx\ATLAS\Scans\[/b] and grab [b]ATLAS_support_bundle.zip[/b]
-• Attach it to a new issue at [url=https://github.com/davemuziek/YOURREPO/issues]the tracker[/url] and link it here
+• Attach it to a new issue at [url=https://github.com/davemuziek/PlanetCrafterATLAS/issues]the tracker[/url] and link it here
 
 Nexus's boxes are text-only, which is why the zip goes to GitHub. If you would rather not use GitHub, any file host works — just post the link.
 
@@ -42,7 +42,7 @@ tracker); everything else works unchanged. Keep the ATLAS link intact so readers
 ```bbcode
 [size=4][b]━━ REPORTING A BUG ━━[/b][/size]
 
-Please attach an ATLAS support bundle. [url=https://www.nexusmods.com/theplanetcrafter/mods/MODID]ATLAS[/url] is a free, read-only diagnostic mod that records what is actually loaded on your machine — mod versions, patch conflicts, keybind clashes, mods that failed to load, and the errors your logs keep repeating. It saves a lot of back-and-forth.
+Please attach an ATLAS support bundle. [url=https://www.nexusmods.com/planetcrafter/mods/233]ATLAS[/url] is a free, read-only diagnostic mod that records what is actually loaded on your machine — mod versions, patch conflicts, keybind clashes, mods that failed to load, and the errors your logs keep repeating. It saves a lot of back-and-forth.
 
 [b]How:[/b]
 • Install ATLAS, then play until you hit the problem
