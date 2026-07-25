@@ -1,41 +1,5 @@
 # ATLAS — Copy-Pasteable Support Blocks
 
-Two BBCode blocks for Nexus mod pages. Both are plain BBCode; paste into a description or a
-bug-report section as-is.
-
-**Why the zip goes to GitHub and not to Nexus:** Nexus comment and bug-report boxes are text-only.
-The support bundle is the whole point — a scrubbed archive of the user's actual load order, logs and
-scan history — so it needs somewhere that accepts a file. A GitHub issue does; so does any file host.
-
----
-
-## Block A — for David's own mod pages
-
-For the bug-report section of ARCHITECT, NAVIGATOR, Field Terminal, Save Keeper, etc.
-Links are already filled in for ATLAS (Nexus mod 233) and the PlanetCrafterATLAS tracker.
-
-```bbcode
-[size=4][b]━━ REPORTING A BUG ━━[/b][/size]
-
-Please attach an ATLAS support bundle. [url=https://www.nexusmods.com/planetcrafter/mods/233]ATLAS[/url] is a free diagnostic mod of mine that records what is actually loaded on your machine — mod versions, patch conflicts, keybind clashes, and the errors your logs have been repeating. It turns "it broke" into something I can act on in one pass instead of five.
-
-[b]How:[/b]
-• Install ATLAS, then play until you hit the problem
-• Return to the main menu, or quit the game normally
-• Open [b]BepInEx\ATLAS\Scans\[/b] and grab [b]ATLAS_support_bundle.zip[/b]
-• Attach it to a new issue at [url=https://github.com/davemuziek/PlanetCrafterATLAS/issues]the tracker[/url] and link it here
-
-Nexus's boxes are text-only, which is why the zip goes to GitHub. If you would rather not use GitHub, any file host works — just post the link.
-
-[b]Privacy:[/b] your Windows username, profile path, machine name and Steam ID are stripped out before the zip is written. It is best-effort rather than airtight, so open it first if you would like to check. Nothing is ever sent anywhere — ATLAS has no network access at all.
-
-If you cannot run ATLAS for any reason, post your [b]BepInEx\LogOutput.log[/b] and your mod list and I will work from that.
-```
-
----
-
-## Block B — generic, for any mod author
-
 Drop-in for other authors' pages. The only edit required is the last line's link (their own
 tracker); everything else works unchanged. Keep the ATLAS link intact so readers can find it.
 
@@ -59,7 +23,7 @@ Nexus's boxes are text-only, so the zip needs a file host or an issue tracker ra
 
 ---
 
-## Notes on both
+## Notes
 
 - **The framing line is not optional.** Without it, users arrive in comment sections announcing that
   ATLAS says someone's mod is broken. Authors who feel accused stop recommending the tool, and
