@@ -14,7 +14,7 @@ namespace ATLAS
     public class Plugin : BaseUnityPlugin
     {
         public const string Guid = "davemuziek.planetcrafter.atlas";
-        public const string Ver = "0.15.0";
+        public const string Ver = "0.15.1";
 
         internal static Plugin? Instance;
         internal static ManualLogSource Log = null!;

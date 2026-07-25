@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ATLAS</AssemblyName>
     <RootNamespace>ATLAS</RootNamespace>
-    <Version>0.15.0</Version>
+    <Version>0.15.1</Version>
     <Product>ATLAS</Product>
     <Description>Archives error logs named after their cause, and scans for mod conflicts and missing dependencies.</Description>
     <Authors>davemuziek</Authors>

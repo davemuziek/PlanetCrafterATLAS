@@ -20,6 +20,15 @@ namespace ATLAS
             new Regex(@"(?:^|\n)[ \t]*(?:at[ \t]+)?([\w.<>+`\[\]]+)\.([\w<>`\[\]]+)[ \t]*\(",
                       RegexOptions.Compiled);
 
+        // Harmony/MonoMod render a PATCHED method's stack frame as a dynamic-method wrapper:
+        //   (wrapper dynamic-method) SpaceCraft.ActionGrabable.DMD<SpaceCraft.ActionGrabable::OnAction>(...)
+        // FrameRx cannot read that - the "::" and the ">(" do not fit "Type.Method(" - so the only
+        // frame it captures from such a throw is the UNPATCHED caller, and a conflict on the patched
+        // method (which every conflict is) would never corroborate. This recovers the inner declaring
+        // type + method from the "<Namespace.Type::Method>" token so those frames count too.
+        private static readonly Regex WrapperFrameRx =
+            new Regex(@"<\s*([\w.<>+`\[\]]+)::([\w<>`\[\]]+)\s*>", RegexOptions.Compiled);
+
         /// <summary>
         /// Reads every archived log and returns the set of "Type.Method" labels that appear
         /// inside an error/fatal block. Reads only logs that already contain errors (ERR/CRASH
@@ -50,6 +59,10 @@ namespace ATLAS
                     // low because conflict method names are specific.
                     var text = File.ReadAllText(path);
                     foreach (Match m in FrameRx.Matches(text))
+                        seen.Add(m.Groups[1].Value + "." + m.Groups[2].Value);
+                    // Also recover patched-method frames from Harmony dynamic-method wrappers,
+                    // otherwise a conflict that actually threw stays "not seen in logs".
+                    foreach (Match m in WrapperFrameRx.Matches(text))
                         seen.Add(m.Groups[1].Value + "." + m.Groups[2].Value);
                 }
                 catch { /* unreadable log - skip */ }
