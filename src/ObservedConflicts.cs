@@ -31,8 +31,24 @@ namespace ATLAS
 
         /// <summary>
         /// Reads every archived log and returns the set of "Type.Method" labels that appear
-        /// inside an error/fatal block. Reads only logs that already contain errors (ERR/CRASH
-        /// in the name) - clean OK logs cannot contain a thrown conflict, so we skip them.
+        /// AT THE THROW SITE of an error/fatal block. Reads only logs that already contain
+        /// errors (ERR/CRASH in the name) - clean OK logs cannot contain a thrown conflict,
+        /// so we skip them.
+        ///
+        /// Only the frames nearest the throw are harvested, never pass-through ancestors.
+        /// A stack trace lists the throw site at the TOP and every frame below it is a caller
+        /// the exception merely unwound through. Harmony renders a *patched* method as a
+        /// dynamic-method wrapper frame, so a patched ancestor - e.g. an input dispatcher the
+        /// keypress passed through on its way to the real fault deep below - would otherwise be
+        /// harvested and its conflict stamped "seen in logs" though it never threw. (Concretely:
+        /// a NullReference thrown in Netcode's __endSendRpc, unwinding up through the patched
+        /// PlayerInputDispatcher.OnActionDispatcher, used to falsely corroborate the NAVIGATOR /
+        /// zARCHITECT conflict on that dispatcher.) Harvesting all frames over-attributes exactly
+        /// as badly as 0.15.0 under-attributed - both are the "which frame is the culprit"
+        /// problem, one erring long, one short. Per stack we therefore keep only:
+        ///   - the throw-site frame itself, if it renders plain ("Type.Method(", the Mono form), and
+        ///   - the first (nearest-the-throw) "&lt;Type::Method&gt;" Harmony wrapper frame.
+        /// Ancestors of both kinds are dropped.
         /// </summary>
         public static HashSet<string> CollectObservedMethods(string archiveDir, out int logsScanned)
         {
@@ -54,21 +70,62 @@ namespace ATLAS
                 try
                 {
                     logsScanned++;
-                    // Pull frames from the whole file. An error block's frames are what we care
-                    // about; scanning the whole file is simpler and the false-positive risk is
-                    // low because conflict method names are specific.
-                    var text = File.ReadAllText(path);
-                    foreach (Match m in FrameRx.Matches(text))
-                        seen.Add(m.Groups[1].Value + "." + m.Groups[2].Value);
-                    // Also recover patched-method frames from Harmony dynamic-method wrappers,
-                    // otherwise a conflict that actually threw stays "not seen in logs".
-                    foreach (Match m in WrapperFrameRx.Matches(text))
-                        seen.Add(m.Groups[1].Value + "." + m.Groups[2].Value);
+                    HarvestThrowSites(File.ReadAllText(path), seen);
                 }
                 catch { /* unreadable log - skip */ }
             }
 
             return seen;
+        }
+
+        /// <summary>
+        /// Walks the log a line at a time, grouping frames into stacks and adding only the
+        /// throw-site frames of each. Frames are contiguous; any non-frame line (the exception
+        /// header, a blank line, an interleaved [Info]/[Warning] entry, the "Stack trace:"
+        /// label) closes the current stack, so the next frame line opens a fresh one with both
+        /// slots empty.
+        /// </summary>
+        private static void HarvestThrowSites(string text, HashSet<string> seen)
+        {
+            bool sawAnyFrame = false;   // has this stack produced a frame yet? (first == throw site)
+            bool haveWrapper = false;   // has this stack contributed its nearest-throw wrapper yet?
+
+            foreach (var raw in text.Split('\n'))
+            {
+                var line = raw.TrimEnd('\r');
+
+                var wrap = WrapperFrameRx.Match(line);
+                // A wrapper frame line is a wrapper, not a plain frame - only test FrameRx when
+                // this line is not a wrapper, so the inner "<Type::Method>" token can't also be
+                // misread as a plain "Type.Method(" frame.
+                var plain = wrap.Success ? Match.Empty : FrameRx.Match(line);
+
+                if (!wrap.Success && !plain.Success)
+                {
+                    // Not a stack frame - close the current stack.
+                    sawAnyFrame = false;
+                    haveWrapper = false;
+                    continue;
+                }
+
+                if (wrap.Success)
+                {
+                    // Nearest-throw patched frame: the first wrapper in the stack, ancestors dropped.
+                    if (!haveWrapper)
+                    {
+                        seen.Add(wrap.Groups[1].Value + "." + wrap.Groups[2].Value);
+                        haveWrapper = true;
+                    }
+                }
+                else if (!sawAnyFrame)
+                {
+                    // The throw site itself, only when it renders as a plain frame (topmost of the
+                    // stack). Plain frames below the top are pass-through callers - never added.
+                    seen.Add(plain.Groups[1].Value + "." + plain.Groups[2].Value);
+                }
+
+                sawAnyFrame = true;
+            }
         }
 
         /// <summary>
